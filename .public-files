@@ -14,5 +14,11 @@ skills/google-ads-mcp-setup-guide/references/sources.md
 skills/google-ads-mcp-setup-guide/references/troubleshooting.zh-TW.md
 skills/google-ads-mcp-setup-guide/references/tutorial.zh-TW.md
 skills/google-ads-mcp-setup-guide/scripts/mcp_smoke_test.py
+skills/google-ads-video-ops/SKILL.md
+skills/google-ads-video-ops/agents/openai.yaml
+skills/google-ads-video-ops/references/delivery-diagnostics.zh-TW.md
+skills/google-ads-video-ops/references/decision-criteria.zh-TW.md
+skills/google-ads-video-ops/references/safe-changes.zh-TW.md
 tests/test_mcp_smoke.py
 tests/test_public_tree.py
+tests/video-ops-scenarios.md

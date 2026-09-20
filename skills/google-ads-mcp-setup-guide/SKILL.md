@@ -44,6 +44,8 @@ Use `--customer-id` only for a user-selected account; otherwise the probe tries 
 
 Always inspect `tools/list`. The tested defaults are `customers_list_accessible_customers`, `metadata_get_resource_metadata(resource_name)`, and `search_search(customer_id, fields, resource, ...)`. Namespaces can be customized. Read metadata for each resource before constructing its query. Do not blindly reuse a `query` argument from an older guide.
 
+The tested toolset provides reads, not campaign mutations. Successful authentication does not add missing write tools. For an authorized campaign change, use an available supported write interface or the Ads UI; do not reinstall a working server or fabricate a mutation endpoint. Campaign strategy belongs in a campaign review workflow, not this setup flow.
+
 Treat `isError`, protocol errors, unexpected output shapes, and timeouts as failures. A valid empty campaign list is `PASS_EMPTY`, not proof that campaigns exist. Report row counts and selection limits locally. Check host registration separately; a subprocess test does not prove the current chat has the tool.
 
 ## Finish in plain language

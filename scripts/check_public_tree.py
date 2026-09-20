@@ -22,12 +22,13 @@ PATTERNS = {
     "personal_windows_path": re.compile(r"[A-Z]:\\Users\\[^\\\s\"']+"),
     "private_email": re.compile(r"[A-Za-z0-9._%+-]+@(?!users\.noreply\.github\.com\b|example\.(?:com|org)\b)[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
     "ads_id_with_hyphens": re.compile(r"(?<!\d)\d{3}-\d{3}-\d{4}(?!\d)"),
-    "ten_digit_identifier": re.compile(r"(?<![\w])\d{10}(?![\w])"),
+    "ads_sized_identifier": re.compile(r"(?<![\w])\d{10,20}(?![\w])"),
 }
 PRIVATE_KEYS = {
     "client_id", "client_secret", "refresh_token", "access_token", "token", "private_key",
     "private_key_id", "developer_token", "login_customer_id", "customer_id", "client_email",
-    "project_id", "quota_project_id", "account", "email",
+    "project_id", "quota_project_id", "account", "email", "campaign_id", "ad_group_id",
+    "ad_id", "asset_id", "video_id", "audience_id", "budget_id",
 }
 
 
@@ -42,6 +43,10 @@ def private_values(paths):
     def collect(obj):
         if isinstance(obj, dict):
             for key, value in obj.items():
+                if key.lower() == "sensitive_values":
+                    if not isinstance(value, list) or any(not isinstance(item, str) or len(item) < 6 for item in value):
+                        raise ValueError("invalid private comparison list")
+                    values.update(value)
                 if key.lower() in PRIVATE_KEYS and isinstance(value, str) and len(value) >= 6:
                     values.add(value)
                 collect(value)
@@ -52,14 +57,16 @@ def private_values(paths):
     for path in paths:
         content = Path(path).read_text(encoding="utf-8")
         try:
-            collect(json.loads(content))
-        except ValueError:
+            decoded = json.loads(content)
+        except json.JSONDecodeError:
             for line in content.splitlines():
                 match = re.match(r"\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)", line)
                 if match and any(word in match[1].lower() for word in ("token", "secret", "client_id", "customer_id", "project", "email")):
                     value = match[2].strip().strip("\"'")
                     if len(value) >= 6:
                         values.add(value)
+        else:
+            collect(decoded)
     return values
 
 
@@ -105,6 +112,8 @@ def check(root, history=False, private_files=()):
         if not path.is_file():
             continue
         files.add(relative)
+        for rule in inspect_text(relative, known):
+            findings.append({"path": relative, "rule": "filename_" + rule})
         if relative not in allowed:
             findings.append({"path": relative, "rule": "file_not_allowlisted"})
         for rule in inspect_bytes(path.read_bytes(), known):
@@ -114,10 +123,26 @@ def check(root, history=False, private_files=()):
 
     commits = 0
     blobs = 0
+    staged_blobs = 0
     if history:
         if Path(git(root, "rev-parse", "--show-toplevel").strip()).resolve() != root.resolve():
             raise ValueError("wrong repository root")
-        index = set(git(root, "ls-files", "-z").strip("\0").split("\0"))
+        entries = list(filter(None, git(root, "ls-files", "--stage", "-z").split("\0")))
+        index = set()
+        staged_seen = set()
+        for entry in entries:
+            header, path = entry.split("\t", 1)
+            mode, oid, stage = header.split()
+            index.add(path)
+            if mode not in {"100644", "100755"} or stage != "0":
+                findings.append({"path": path, "rule": "unsafe_index_entry"})
+            for rule in inspect_text(path, known):
+                findings.append({"path": path, "rule": "staged_filename_" + rule})
+            if mode in {"100644", "100755", "120000"} and oid not in staged_seen:
+                staged_seen.add(oid)
+                staged_blobs += 1
+                for rule in inspect_bytes(git(root, "cat-file", "blob", oid, binary=True), known):
+                    findings.append({"path": path, "rule": "staged_" + rule})
         if index != allowed:
             findings.append({"path": "GIT_INDEX", "rule": "index_differs_from_allowlist"})
         revisions = git(root, "rev-list", "--all").splitlines()
@@ -132,6 +157,8 @@ def check(root, history=False, private_files=()):
             for entry in filter(None, listing):
                 header, path = entry.split("\t", 1)
                 mode, kind, oid = header.split()
+                for rule in inspect_text(path, known):
+                    findings.append({"path": path, "rule": "historical_filename_" + rule})
                 if path not in allowed or mode not in {"100644", "100755"} or kind != "blob":
                     findings.append({"path": path, "rule": "historical_file_not_allowed"})
                 if kind == "blob" and oid not in seen:
@@ -141,6 +168,7 @@ def check(root, history=False, private_files=()):
                         findings.append({"path": path, "rule": rule})
     return {"status": "PASS" if not findings else "FAIL", "files_checked": len(files),
             "commits_checked": commits, "unique_blobs_checked": blobs,
+            "staged_blobs_checked": staged_blobs,
             "private_source_files_checked": len(private_files), "findings": findings}
 
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Google Ads Video Operations"
+  short_description: "Diagnose Video delivery and verify authorized changes"
+  default_prompt: "Use $google-ads-video-ops to review my Video campaign's delivery and propose evidence-backed changes without applying them."

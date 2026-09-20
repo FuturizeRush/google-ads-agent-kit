@@ -1,8 +1,13 @@
 # Google Ads Agent Kit
 
-讓 AI agent 帶你安裝 Google Ads MCP、完成 Google 登入，並查到第一筆廣告活動資料。
+讓 AI agent 接通 Google Ads MCP，診斷影片廣告投放，並安全執行已授權的設定調整。
 
-提供可安裝的 agent skill、繁體中文教學與唯讀連線測試。適用 macOS，主線使用 Codex；Claude Code 可使用同一份 skill。
+提供可安裝的 agent skills、繁體中文教學與唯讀連線測試。安裝教學以 macOS 和 Codex 為主；Claude Code 可使用相同 skills。
+
+| Skill | 何時使用 |
+| --- | --- |
+| [google-ads-mcp-setup-guide](skills/google-ads-mcp-setup-guide/SKILL.md) | 安裝 gcloud、設定 ADC、接通 MCP、排除連線錯誤 |
+| [google-ads-video-ops](skills/google-ads-video-ops/SKILL.md) | 沒有觀看、看不懂預算幣別、檢查 CPV／受眾／頻率，以及驗證已授權的修改 |
 
 ## 安裝 skill
 
@@ -10,9 +15,10 @@
 
 ```bash
 npx --yes skills add FuturizeRush/google-ads-agent-kit --skill google-ads-mcp-setup-guide --agent codex
+npx --yes skills add FuturizeRush/google-ads-agent-kit --skill google-ads-video-ops --agent codex
 ```
 
-Claude Code 使用者把 `--agent codex` 改成 `--agent claude-code`。這一步安裝操作指引與測試腳本；gcloud、Google 授權和 MCP 設定由後續流程完成。
+按需要執行其中一行或兩行。Claude Code 使用者把 `--agent codex` 改成 `--agent claude-code`。這一步安裝操作指引與附帶資源；gcloud、Google 授權和 MCP 設定由後續流程完成。
 
 開啟新的 agent 對話，輸入：
 
@@ -21,6 +27,16 @@ Claude Code 使用者把 `--agent codex` 改成 `--agent claude-code`。這一�
 先檢查已有的工具與設定，再補齊缺少的步驟。
 最後從目前客戶端做一次唯讀查詢，回報結果。
 ```
+
+已有可用帳戶連線，要檢查影片廣告：
+
+```text
+使用 google-ads-video-ops，檢查我指定的 Video campaign 為什麼沒有觀看。
+先確認幣別、預算類型、日期、出價及審查狀態，再評估受眾。
+保留我的客群限制，提出有依據的建議，先不要修改。
+```
+
+操作 skill 不附帶寫入權限或自動調價程式。修改前需有明確授權及可用的寫入介面；MCP 的唯讀工具不能代替它。公開內容不提供固定的預算、CPV 或人口條件作為通用預設。
 
 ## 從零開始
 
