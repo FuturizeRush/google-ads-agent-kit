@@ -1,0 +1,4 @@
+interface:
+  display_name: "Google Ads MCP Setup"
+  short_description: "Set up gcloud ADC and verify Google Ads MCP safely"
+  default_prompt: "Use $google-ads-mcp-setup-guide to set up Google Ads MCP and verify a read-only campaign query."
