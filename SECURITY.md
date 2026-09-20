@@ -6,6 +6,8 @@ Do not commit `.env`, OAuth client downloads, ADC JSON, service account keys, ra
 
 The live probe uses existing ADC through the official server and performs read-only queries. The underlying OAuth consent can grant broader authority than these queries. Read the consent screen. Output omits identities and raw errors, but counts can still be confidential; do not post a live report without reviewing it.
 
+The Google Ads MCP server is published by Google; the skills and protocol probe in this repository are community code, and the `skills` installer is a separate third-party project. Using the official server does not make the surrounding installer or helpers Google-endorsed. Review their source and selected versions before execution. Passing secret scans does not establish the trustworthiness of every dependency or remote package.
+
 ## Release checks
 
 Before each public push, check the explicit file allowlist, working-tree content and paths, staged blob content and modes, reachable Git history and commit metadata, known private values, and a separate Gitleaks scan. The public helper can compare to a local private file without printing its values:
